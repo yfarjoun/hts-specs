@@ -1411,9 +1411,10 @@ CHROM	  & int32\_t  &	Given as an offset into the mandatory contig dictionary \\
 POS	      & int32\_t  &	0-based leftmost coordinate \\ \hline
 rlen      &	int32\_t  &	Length of the record as projected onto the reference sequence. Must be the length of the REF allele or the declared length of a symbolic allele respecting the END attribute \\ \hline
 n\_allele\_info	& int32\_t	& n\_info, where n\_allele is the number of REF+ALT alleles in this record, and n\_info is the number of VCF INFO fields present in this record \\ \hline
-n\_fmt\_sample	& uint32\_t	& n\_sample, where n\_fmt is the number of format fields for genotypes in this record, and n\_samples is the number of samples present in this sample.  Note that the number of samples must be equal to the number of samples in the header \\ \hline
-QUAL	  & float	  & Variant quality; 0x7F800001 for a missing value \\ \hline
-ID	      & typed string & REF+ALT	list of n\_allele typed strings	the first allele is REF (mandatory) followed by n\_alleles - 1 ALT alleles, all encoded as typed strings \\ \hline
+n\_fmt\_sample	& uint32\_t	& n\_sample, where n\_fmt is the number of format fields for genotypes in this record, and n\_samples is the number of samples present in this record.  Note that the number of samples in the record must be equal to the number of samples in the header \\ \hline
+QUAL	  & float	  & Variant quality; 0x7F800001 for  MISSING \\ \hline
+ID	      & typed string & ID of variant (single or vector) ({\bf NEEDS CLARIFICATION: IS THE SEMI COLON SEPARATOR KEPT OR CONVERTED TO COMMAS AS PER VECTORS IN BCS? I THINK IT NEEDS TO BE CONVERTED SINCE COMMAS ARE ALLOWED IN THE IDENTIFIERS IN VCF...}), or MISSING \\ \hline
+ALLELES & list of typed string & REF+ALT	list of n\_allele typed strings	the first allele is REF (mandatory) followed by n\_alleles - 1 ALT alleles, all encoded as typed strings \\ \hline
 FILTER	  & Typed vector of integers	& a vector of integer offsets into dictionary, one for each FILTER field value.  ``.'' is encoded as MISSING \\ \hline
 INFO      & field key/value pairs	    & n\_info pairs of typed vectors	The first value must be a typed atomic integer giving the offset of the INFO field key into the dictionary.  The second value is a typed vector giving the value of the field \\ \hline
 Genotype values &	see below	& see below \\ \hline
@@ -1503,7 +1504,8 @@ missing values and 0x81, 0x8001, 0x80000001 as end-of-vector indicators
 (for 8, 16, and 32 bit values, respectively). Note that the end-of-vector byte
 is not part of the vector itself and only end-of-vector bytes can follow.
 In total, eight values are reserved for future use: 0x80-0x87, 0x8000-0x8007, 0x80000000-0x80000007.
-
+The reserved values mean that encoders should use the larger formats for -127,...-121 in INT8, and -32768,...-32761 in INT16, while values -2147483648,...
+-2147483641 (in INT32) are not allowed in BCF and should generate an error.
 
 \vspace{0.3cm}
 \textbf{Floats} are encoded as single-precision (32 bit) in the basic format
@@ -1525,13 +1527,14 @@ it is a quiet NaN; if a is zero and the payload is nonzero, then it is a
 signaling NaN.
 \end{quote}
 
-\noindent A good way to understand these values is to play around with the IEEE encoder webiste.
+\noindent A good way to understand these values is to play around with an interactive IEEE encoder.
+For example, CUNY has a good one here: \href{http://babbage.cs.qc.cuny.edu/IEEE-754/}{http://babbage.cs.qc.cuny.edu/IEEE-754/}
 
 \vspace{0.3cm}
 \noindent Similarly to integers, the float value of 0x7F800001 is interpreted as a missing value
 and 0x7F800002 as the end-of-vector indicator. Note that the end-of-vector byte
 is not part of the vector itself and only end-of-vector bytes can follow. In total,
-eight values are reservd for future use:
+eight values are reserved for future use:
 
 \vspace{0.1cm}
 \begin{tabular}{| l | c | l |} \hline
@@ -1543,6 +1546,7 @@ reserved & 0b0111 1111 1000 0000 0000 0000 0000 0011 & 0x7F800003 \\ \hline
 $\ldots$ & $\ldots$ & $\ldots$ \\ \hline
 reserved & 0b0111 1111 1000 0000 0000 0000 0000 0111 & 0x7F800007 \\ \hline
 \end{tabular}
+The float value of the reserved range is 1.05892563396802163381046514824E-314 -- 1.05685337591186663095396499828E-314
 
 \vspace{0.3cm}
 \textbf{Character} values are not explicitly typed in BCF2.  Instead, VCF Character values must be encoded by a single character string. See also \ref{character-encoding}.
@@ -1561,17 +1565,18 @@ Suppose you want to encode the string ACAC.  First, we need the type descriptor 
 \end{tabular}
 \vspace{0.3cm}
 
-Suppose you want to encode the string MarkDePristoWorksAtTheBroad, a string of size 27.  First, we need the type descriptor byte, which is the string type 0x07.  Because the size exceeds the inline size ($27 > 15$) we set the size to overflow, yielding the type byte of 0xF0 | 0x07 = 0xF7.  Immediately following the type byte is the typed size of 27, which we encode by the atomic INT8 value: 0x11 followed by the actual size 0x1B.  Finally comes the actual bytes of the string: 0x4D 0x61 0x72 0x6B 0x44 0x65 0x50 0x72 0x69 0x73 0x74 0x6F 0x57 0x6F 0x72 0x6B 0x73 0x41 0x74 0x54 0x68 0x65 0x42 0x72 0x6F 0x61 0x64.  So the final encoding is:
+Suppose you want to encode the string MarkDePristoWorkedAtTheBroad, a string of size 28.  First, we need the type descriptor byte, which is the string type 0x07.  Because the size exceeds the inline size ($28 > 15$) we set the size to overflow, yielding the type byte of 0xF0 | 0x07 = 0xF7.  Immediately following the type byte is the typed size of 28, which we encode by the atomic INT8 value: 0x11 followed by the actual size 0x1C.  Finally comes the actual bytes of the string: 
+0x4D 0x61 0x72 0x6B 0x44 0x65 0x50 0x72 0x69 0x73 0x74 0x6F 0x57 0x6F 0x72 0x6B 0x65 0x64 0x41 0x74 0x54 0x68 0x65 0x42 0x72 0x6F 0x61 0x64.  So the final encoding is:
 
 \vspace{0.3cm}
 \begin{tabular}{ | p{9cm} | p{6cm} | } \hline
 0xF7 & string with overflow size \\ \hline
-0x11 0x1B & overflow size encoded as INT8 with value 27 \\ \hline
-0x4D 0x61 0x72 0x6B 0x44 0x65 0x50 0x72 0x69 0x73 0x74 0x6F 0x57 0x6F 0x72 0x6B 0x73 0x41 0x74 0x54 0x68 0x65 0x42 0x72 0x6F 0x61 0x64 & message in ASCII \\ \hline
+0x11 0x1C & overflow size encoded as INT8 with value 28 \\ \hline
+0x4D 0x61 0x72 0x6B 0x44 0x65 0x50 0x72 0x69 0x73 0x74 0x6F 0x57 0x6F 0x72 0x6B 0x65 0x64 0x41 0x74 0x54 0x68 0x65 0x42 0x72 0x6F 0x61 0x64 & message in ASCII \\ \hline
 \end{tabular}
 \vspace{0.3cm}
 
-Suppose you want to encode the missing value `.'.  This is simply a string of size 0 = 0x07.
+Suppose you want to encode the missing (string) value `.'.  This is simply a string of size 0 = 0x07.
 
 \vspace{0.3cm}
 In VCF there are sometimes fields of type list of strings, such as a number
@@ -1582,6 +1587,9 @@ comma-separated string, encode it as a regular BCF2 vector of characters, and
 on reading explode it back into the list of strings.  This works because
 strings in VCF cannot contain `{ \tt ,}' (it's a field separator) and so we can
 safely use `{\tt ,}' to separate the individual strings. 
+For UNBOUNDED vectors of strings in the FORMAT field, we will need to use the 
+end-of-vector character to encode for the end of a shorter array in one genotype. 
+For strings, the end of vector character is {\tt 0x04}.
 
 % String vectors in BCF do not need to start with comma, as the number of
 % values is indicated already in the definition of the tag in the header.
@@ -1597,15 +1605,15 @@ safely use `{\tt ,}' to separate the individual strings.
 
 \vspace{0.3cm}
 
-\textbf{Vectors} --- The BCF2 type byte may indicate that the upcoming data stream contains not a single value but a fixed length vector of values.  The vector values occur in order (1st, 2nd, 3rd, etc) encoded as expected for the type declared in the vector's type byte.  For example, a vector of 3 16-bit integers would be layed out as first the vector type byte, followed immediately by 3 2-byte values for each integer, including a total of 7 bytes.
+\textbf{Vectors} --- The BCF2 type byte may indicate that the upcoming data stream contains not a single value but a fixed length vector of values.  The vector values occur in order (1st, 2nd, 3rd, etc) encoded as expected for the type declared in the vector's type byte.  For example, a vector of 3 16-bit integers would be laid out as first the vector type byte, followed immediately by 3 2-byte values for each integer, including a total of 7 bytes.
 
 Missing values in vectors are handled slightly differently from atomic values.  There are two possibilities for missing values:
 
 One (or more) of the values in the vector may be missing, but others in the vector are not.  Here each value should be represented in the vector, and each corresponding BCF2 vector value either set to its present value or the type equivalent MISSING value.
 Alternatively the entire vector of values may be missing.  In this case the correct encoding is as a type byte with size 0 and the appropriate type MISSING.
-Suppose we are encoding the record ``AC=[1,2,3]'' from the INFO field.  The AC key is encoded in the standard way.  This would be immediately followed by a typed 8-bit integer vector of size 3, which is encoded by the type descriptor 0x31.  The type descriptor is immediately followed by the three 8-bit integer values: 0x01 0x02 0x03, for a grant total of 4 bytes: 0x31010203.
+Suppose we are encoding the record ``AC=[1,2,3]'' from the INFO field.  The AC key is encoded in the standard way.  This would be immediately followed by a typed 8-bit integer vector of size 3, which is encoded by the type descriptor 0x31.  The type descriptor is immediately followed by the three 8-bit integer values: 0x01 0x02 0x03, for a grand total of 4 bytes: 0x31010203.
 
-Suppose we are at a site with many alternative alleles so AC=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16].  Since there are 16 values, we have to use the long vector encoding.  The type of this field is 8 bit integer with the size set to 15 to indicate that the size is the next stream value, so this has type of 0xF1.  The next value in the stream is the size, as a typed 8-bit atomic integer: 0x11 with value 16 0x10.  Each integer AC value is represented by it's value as a 8 bit integer.  The grand total representation here is:
+Suppose we are at a site with many alternative alleles so AC=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16].  Since there are 16 values, we have to use the long vector encoding.  The type of this field is 8 bit integer with the size set to 15 to indicate that the size is the next stream value, so this has type of 0xF1.  The next value in the stream is the size, as a typed 8-bit atomic integer: 0x11 with value 16 0x10.  Each integer AC value is represented by its value as a 8 bit integer.  The grand total representation here is:
 
 \vspace{0.3cm}
 \begin{tabular}{|p{9cm} | p{6cm}|} \hline
