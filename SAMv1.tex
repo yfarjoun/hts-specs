@@ -9,7 +9,8 @@
 \usepackage[pdfborder={0 0 0},hyperfootnotes=false]{hyperref}
 \usepackage[title]{appendix}
 \usepackage[calc]{picture}
-
+\usepackage{makeidx}
+\makeindex
 \newlength{\bytewidth}
 \newlength{\bytetotalheight}
 \newlength{\bytedepth}
@@ -49,7 +50,7 @@ last modified on the date shown above.
 
 
 \section{The SAM Format Specification}
-SAM stands for Sequence Alignment/Map format. It is a TAB-delimited text
+\index{SAM}SAM stands for Sequence Alignment/Map format. It is a TAB-delimited text
 format consisting of a header section, which is optional, and an
 alignment section. If present, the header must be prior to the
 alignments. Header lines start with `{\tt @}', while alignment lines do
@@ -57,15 +58,15 @@ not. Each alignment line has 11 mandatory fields for essential alignment
 information such as mapping position, and variable number of optional
 fields for flexible or aligner specific information.
 
-This specification is for version 1.6 of the SAM and BAM formats.  Each SAM and
+This \index{specification}specification is for version 1.6 of the SAM and BAM formats.  Each SAM and
 BAM file may optionally specify the version being used via the
-{\tt @HD VN} tag. For full version history see Appendix~\ref{sec:history}. 
+{\tt @HD VN} tag. For full version history see Appendix~\ref{sec:history}. \index{version}
 
-Unless explicitly specified elsewhere, all fields are encoded using 7-bit US-ASCII \footnote{Charset ANSI\_X3.4-1968 as defined in RFC1345.} in using the POSIX / C locale.
-Regular expressions listed use the POSIX / IEEE Std 1003.1 extended syntax.
+Unless explicitly specified elsewhere, all fields are \index{encoding}encoded using 7-bit US-ASCII \footnote{Charset ANSI\_X3.4-1968 as defined in RFC1345.} in using the POSIX / C locale.
+\index{regular expression}Regular expressions listed use the POSIX / IEEE Std 1003.1 extended syntax.
 
 \subsection{An example}\label{sec:example}
-Suppose we have the following alignment with bases in lower cases
+\index{example}Suppose we have the following alignment with bases in lower cases
 clipped from the alignment. Read {\tt r001/1} and {\tt r001/2}
 constitute a read pair; {\tt r003} is a chimeric read; {\tt r004}
 represents a split alignment.
@@ -107,16 +108,16 @@ r001  147 ref 37 30 9M         =  7 -39 CAGCGGCAT         * NM:i:1
 \subsection{Terminologies and Concepts}
 
 \begin{description}
-\item[Template] A DNA/RNA sequence part of which is sequenced on a
+\item[Template] \index{template}A DNA/RNA sequence part of which is sequenced on a
   sequencing machine or assembled from raw sequences.
 
-\item[Segment] A contiguous sequence or subsequence.
+\item[Segment]\index{segment} A contiguous sequence or subsequence.
 
-\item[Read] A raw sequence that comes off a sequencing machine. A read
+\item[Read]\index{read} A raw sequence that comes off a sequencing machine. A read
   may consist of multiple segments. For sequencing data, reads are indexed by
   the order in which they are sequenced.
 
-\item[Linear alignment]
+\item[Linear alignment]\index{alignment}
   An alignment of a read to a single reference sequence that may include
   insertions, deletions, skips and clipping, but may not include direction
   changes (i.e. one portion of the alignment on forward strand and another
@@ -126,7 +127,7 @@ r001  147 ref 37 30 9M         =  7 -39 CAGCGGCAT         * NM:i:1
 %  alignment may have short insertions/deletions but does not have long gaps
 %  (e.g. due to introns or structural variation).
 
-\item[Chimeric alignment]
+\item[Chimeric alignment]\index{chimeric}
   An alignment of a read that cannot be represented as a linear alignment. A
   chimeric alignment is represented as a set of linear alignments that do not
   have large overlaps.  Typically, one of the linear alignments in a chimeric
@@ -136,11 +137,11 @@ r001  147 ref 37 30 9M         =  7 -39 CAGCGGCAT         * NM:i:1
   and the same values for 0x40 and 0x80 flags (see Section~\ref{sec:alnrecord}).
   The decision regarding which linear alignment is representative is arbitrary.
 
-\item[Read alignment]
+\item[Read alignment]\index{read alignment}
   A linear alignment or a chimeric alignment that is the complete
   representation of the alignment of the read.
 
-\item[Multiple mapping]
+\item[Multiple mapping]\index{mulitiple mapping}
   The correct placement of a read may be ambiguous, e.g. due to repeats.  In
   this case, there may be multiple read alignments for the same read.  One of
   these alignments is considered primary.  All the other alignments have the
@@ -149,13 +150,13 @@ r001  147 ref 37 30 9M         =  7 -39 CAGCGGCAT         * NM:i:1
   flags.  Typically the alignment designated primary is the best alignment, but
   the decision may be arbitrary.\footnotemark
 
-\item[1-based coordinate system] A coordinate system where the first
+\item[1-based coordinate system] \index{coordinate system} \index{1-based}\index{closed interval}A coordinate system where the first
   base of a sequence is one. In this coordinate system, a region is
   specified by a closed interval. For example, the region between the
   3rd and the 7th bases inclusive is $[3,7]$. The SAM, VCF, GFF and Wiggle
   formats are using the 1-based coordinate system.
 
-\item[0-based coordinate system] A coordinate system where the first
+\item[0-based coordinate system]  \index{coordinate system}\index{0-based} \index{half-open interval}A coordinate system where the first
   base of a sequence is zero. In this coordinate system, a region is
   specified by a half-closed-half-open interval. For example, the region
   between the 3rd and the 7th bases inclusive is $[2,7)$. The BAM, BCFv2, BED,
@@ -176,7 +177,7 @@ almost entirely overlapping with each other; except the single-best optimal
 mapping, all the other mappings get mapping quality $<$Q3
 and are ignored by most SNP/INDEL callers.}
 
-\subsection{The header section}
+\subsection{The header section} \index{header}
 Each header line begins with the character `{\tt @}' followed by
 one of the two-letter header record type codes defined in this section.
 In the header, each line is TAB-delimited and, apart from {\tt @CO} lines,
@@ -187,7 +188,7 @@ Thus header lines match {\tt
   -\char126]+)+\$/} or {\tt /\char94@CO\char92t.*/}.
 
 The following table describes the header record types that may be used
-and their predefined tags.
+and their predefined tags. \index{tags}
 Tags listed with `*' are required; e.g., every {\tt @SQ} header line must
 have {\tt SN} and {\tt LN} fields.
 As with alignment optional fields (see Section~\ref{sec:alnaux}),
@@ -1300,4 +1301,9 @@ optional. (July 2010)
 Initial edition.
 
 \end{appendices}
+
+\section{Index}
+
+\printindex
+
 \end{document}
