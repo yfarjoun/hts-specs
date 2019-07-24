@@ -505,7 +505,7 @@ See also Section~\ref{sv-format-keys} for a list of genotype keys reserved for s
   All phased genotypes that do not contain a PS subfield are assumed to belong to the same phased set.
   If the genotype in the GT field is unphased, the corresponding PS field is ignored.
   The recommended convention is to use the position of the first variant in the set as the PS identifier (although this is not required).
-  \item LAA (and LAD and LPL (*): 
+  \item LAA (and LAD and LPL (*):
   For callsets with a large number of samples, it is often the case that the majority of sites are not called and sites end up involving many alleles for which all the samples need to provide PL and AD. 
   This can cause the file-sizes to grow super-linearly with the number of samples. 
   To prevent this, one can choose to specify the allele depth and the genotype likelihood against a subset of ``Local Alleles".
