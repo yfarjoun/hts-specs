@@ -513,11 +513,7 @@ See also Section~\ref{sv-format-keys} for a list of genotype keys reserved for s
   For example, if REF is G, ALT is A,C,T,\verb!<*>! and a genotype only has information about G, C, and \verb!<*>!, one can have LAA=[2,4] and thus LPL will be interpreted as pertaining to the alleles [G, C, \verb!<*>!] and not contain likelihood values for genotypes that involve A or T.
   It is implicit that REF is part of any ``local" context, and it always has index 0, even if the genotype is compound HET. 
   LAA is required in order to interpret LAD and LPL.
-  \item RBS(Integer): An integer describing the size of this genotype's reference block. 
-  The size is the difference between the last position (inclusive) of the reference block and POS. 
-  Downstream positions that are covered by the reference block should be missing (`.'), and will be interpreted as having the same non-reference likelihood as given in this genotype.
-  Missing genotypes (`.') that are not covered by a reference block are to be interpreted as truly missing.
-\end{itemize}
+ \end{itemize}
 
 
 \section{Understanding the VCF format and the haplotype representation}
