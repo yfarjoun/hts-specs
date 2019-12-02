@@ -410,7 +410,7 @@ See also Section~\ref{sv-format-keys} for a list of genotype keys reserved for s
       PL		& G		& Integer	& Phred-scaled genotype likelihoods rounded to the closest integer \\
       PQ		& 1		& Integer	& Phasing quality \\
       PS		& 1		& Integer	& Phase set \\
-      PSL  		& .		& Integer	& Phase set list\\
+      PSL		& .		& Integer	& Phase set list\\
       PQL		& .		& Integer	& Phasing quality list \\
       
 \end{longtable}
@@ -435,6 +435,7 @@ See also Section~\ref{sv-format-keys} for a list of genotype keys reserved for s
 %Haploid calls, e.g.\ on Y, male non-pseudoautosomal X, or mitochondrion, are indicated by having only one allele value.
 %A triploid call might look like $0/0/1$, and a partially phased triploid call could be 0/1/2| to indicate that the last allele is phased with another variant in the genome.
 %If a call cannot be made for a sample at a given locus, `.' must be specified for each missing allele in the GT field (for example `$./.$' for a diploid genotype and `.' for haploid genotype).
+% If an interchromosomal breakpoint is included in a PS, the remote breakend is not considered phased. Interchromosomal breakpoints should be phased with PSL.
 %The meanings of the separators are as follows (see the PS field below for more details on incorporating phasing information into the genotypes):
 %	\begin{itemize}
 %	  \item $/$ : previous allele unphased
@@ -509,10 +510,11 @@ See also Section~\ref{sv-format-keys} for a list of genotype keys reserved for s
   If the genotype in the GT field is unphased, the corresponding PS field is ignored.
   The recommended convention is to use the position of the first variant in the set as the PS identifier (although this is not required).
 %  \item PQL (List of integers): The list of PQs one for each phase set in PSL (encoded like PQ)
-%  \item PSL (List of non-negative 32-bit Integer): The list of PSs one for each explicitly phased genotype, (with a $\mid$ after it).
+%  \item PSL (List of non-negative 32-bit Integer): The phasing identifiers for each explicitly phased genotype, (with a $\mid$ after it).
 %  A given sample-genotype must not have values for both PS and PSL.
 %  In addition, PS and PSL are not interoperable, in that a PS mentioned in one variant cannot be referenced in a PSL in another, 
-%  since when used in PS is isn't connected to any specific haplotype (i.e. first or second), but PSL is. 
+%  since when used in PS is isn't connected to any specific haplotype (i.e. first or second), but PSL is.
+%  Each PSL must be sample-unique since, unlike PS, PSL can span multiple chromosomes.
   \end{itemize}
 
 
