@@ -1,0 +1,5 @@
+{
+"Task": "ValidateSam",
+"Input": "SAM/zero_length_read.sam",
+"Result": "Success"
+}
