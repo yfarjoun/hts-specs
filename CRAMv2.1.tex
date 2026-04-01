@@ -192,16 +192,40 @@ This is an alternative way to write an integer value. The idea is similar to UTF
 encoding and therefore this encoding is called ITF-8 (Integer Transformation Format 
 - 8 bit). 
 
-The most significant bits of the first byte have special meaning and are called 
-`prefix'. These are 0 to 4 true bits followed by a 0. The number of 1's denote 
-the number of bytes the follow. To accommodate 32 bits such representation requires 
-5 bytes with only 4 lower bits used in the last byte 5.
+The most significant bits of the first byte have special meaning and are called
+the `prefix'. The number of leading 1-bits in the prefix denotes the number of
+bytes to follow. Unlike UTF-8, only the first byte carries a prefix;
+all subsequent bytes contain pure data bits with no continuation markers.
 
-\item[LTF-8 long or (ltf8)]\ \newline
-See ITF-8 for more details. The only difference between ITF-8 and LTF-8 is the 
-number of bytes used to encode a single value. To do so 64 bits are required and 
-this can be done with 9 byte at most with the first byte consisting of just 1s 
-or 0xFF value. 
+The bit patterns for each encoding length are as follows:
+
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Bytes} & \textbf{Byte 1} & \textbf{Data bits}\tabularnewline
+\hline
+1 & \texttt{0xxxxxxx} & 7\tabularnewline
+\hline
+2 & \texttt{10xxxxxx} & 6 + 8 = 14\tabularnewline
+\hline
+3 & \texttt{110xxxxx} & 5 + 16 = 21\tabularnewline
+\hline
+4 & \texttt{1110xxxx} & 4 + 24 = 28\tabularnewline
+\hline
+5 & \texttt{1111xxxx} & 4 + 24 = 28\tabularnewline
+\hline
+\end{tabular}
+
+\noindent Note that in the 5-byte case, the prefix is \texttt{1111} with no trailing 0-bit,
+and only the 4 lower bits of the first byte are used for data. This limits the
+effective range to 32 bits (matching a signed 32-bit integer).
+
+\item[LTF-8 long (ltf8)]\ \newline
+See ITF-8 for more details. The only difference between ITF-8 and LTF-8 is the
+number of bytes used to encode a single value. To encode 64 bits, up to
+9 bytes are required. The bit patterns for each encoding length follow the same
+scheme as ITF-8, extended through 8 leading 1-bits. In the 9-byte case, the
+first byte is \texttt{0xFF} (all 1-bits, no trailing 0-bit), and the remaining
+8 bytes contain 64 data bits.
 
 \item[{Array ([ ])}]\ \newline
 Array length is written first as integer (itf8), followed by the elements of the 
